@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div>
+    <div className="flex justify-center items-center w-screen h-screen">
       <LoginForm/>
     </div>
   );
