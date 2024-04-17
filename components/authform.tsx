@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button"
+"use client";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,32 +7,80 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { Toaster, toast } from "sonner";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+const loginformzod = z.object({
+  email: z.string(),
+  password: z.string(),
+});
+
+type Loginprop = z.infer<typeof loginformzod>;
 
 export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<Loginprop>({ resolver: zodResolver(loginformzod) });
+  const processForm: SubmitHandler<Loginprop> = async (data) => {
+    // data.document = url!;
+    const response = await fetch("/api/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    const { success } = await response.json();
+    console.log(success);
+    if (success) {
+      reset();
+      toast("Data has been successfully sent");
+      return;
+    }
+    toast("Something went wrong!");
+    return;
+  };
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
-          Enter your email below to login to your account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button className="w-full">Sign in</Button>
-      </CardFooter>
-    </Card>
-  )
+    <div>
+      <form onSubmit={handleSubmit(processForm)}>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                {...register("email")}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                {...register("password")}
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full">Sign in</Button>
+          </CardFooter>
+        </Card>
+      </form>
+      <Toaster position="bottom-right" />
+    </div>
+  );
 }
